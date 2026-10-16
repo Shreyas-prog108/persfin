@@ -97,21 +97,33 @@ function derivative(rate: number, flows: TimedFlow[]): number {
   return total;
 }
 
+function cashScale(flows: TimedFlow[]): number {
+  return Math.max(
+    1,
+    flows.reduce((sum, flow) => sum + Math.abs(flow.amount), 0),
+  );
+}
+
+function npvIsZero(rate: number, flows: TimedFlow[]): boolean {
+  return Math.abs(npv(rate, flows)) <= 1e-8 * cashScale(flows);
+}
+
 function newtonXirr(flows: TimedFlow[], guess: number): number | null {
   let rate = guess;
+  const slopeFloor = 1e-12 * cashScale(flows);
   for (let iteration = 0; iteration < 80; iteration += 1) {
     if (rate <= -0.999999999) return null;
     const value = npv(rate, flows);
     const slope = derivative(rate, flows);
-    if (!Number.isFinite(value) || !Number.isFinite(slope) || Math.abs(slope) < 1e-14) return null;
+    if (!Number.isFinite(value) || !Number.isFinite(slope) || Math.abs(slope) < slopeFloor) return null;
     const next = rate - value / slope;
     if (!Number.isFinite(next) || next <= -1) return null;
     if (Math.abs(next - rate) < 1e-12) {
-      return Math.abs(npv(next, flows)) < 1e-6 ? next : null;
+      return npvIsZero(next, flows) ? next : null;
     }
     rate = next;
   }
-  return Math.abs(npv(rate, flows)) < 1e-6 ? rate : null;
+  return npvIsZero(rate, flows) ? rate : null;
 }
 
 export function dividendYield(annualDividend: number, price: number): number {
@@ -133,10 +145,11 @@ export function totalReturn(input: TotalReturnInput): { gain: number; absolute: 
   assertNonNegative("Income received", input.incomeReceived);
   const gain = input.endingValue - input.amountInvested + input.incomeReceived;
   const absolute = gain / input.amountInvested;
-  const annualised = input.years === undefined ? null : cagr(input.amountInvested, input.amountInvested + gain, input.years);
-  if (input.years !== undefined && input.amountInvested + gain <= 0) {
+  const endingWealth = input.amountInvested + gain;
+  if (input.years !== undefined && endingWealth <= 0) {
     throw new FinanceError("CAGR is not defined when the ending wealth is zero or negative.");
   }
+  const annualised = input.years === undefined ? null : cagr(input.amountInvested, endingWealth, input.years);
   return { gain, absolute, cagr: annualised };
 }
 

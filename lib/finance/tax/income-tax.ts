@@ -80,7 +80,7 @@ export function estimateIncomeTax(input: IncomeTaxInput): IncomeTaxResult {
     }
     const interest = Math.min(input.selfOccupiedInterest, rules.selfOccupiedInterestCap);
     if (input.selfOccupiedInterest > rules.selfOccupiedInterestCap) {
-      notes.push("Self-occupied house interest was limited to ₹2,00,000 under the old regime.");
+      notes.push(`Self-occupied house interest was limited to ${rules.selfOccupiedInterestCap} under the old regime.`);
     }
     if (interest > 0) deductions.push({ label: "Self-occupied house interest", amount: interest });
   } else if (
@@ -96,10 +96,17 @@ export function estimateIncomeTax(input: IncomeTaxInput): IncomeTaxResult {
 
   const deductionTotal = deductions.reduce((sum, item) => sum + item.amount, 0);
   const taxableIncome = Math.max(0, input.grossIncome - deductionTotal);
+  const ageForSlabs: AgeBand =
+    input.regime === "old" && !input.resident ? "below-60" : input.age;
+  if (input.regime === "old" && !input.resident && input.age !== "below-60") {
+    notes.push(
+      "The higher old-regime basic exemption for senior citizens applies to residents. This estimate uses the below-60 slabs.",
+    );
+  }
   const computed = taxOnTaxableIncome({
     taxableIncome,
     regime: input.regime,
-    age: input.age,
+    age: ageForSlabs,
     resident: input.resident,
     rules,
   });

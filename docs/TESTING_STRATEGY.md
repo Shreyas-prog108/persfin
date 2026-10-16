@@ -36,21 +36,13 @@ npx lighthouse http://127.0.0.1:3000/calculators/fd --only-categories=performanc
 npx lighthouse http://127.0.0.1:3000/learn/compound-interest --only-categories=performance,accessibility,best-practices,seo --chrome-flags="--headless" --output=json --output-path=/tmp/lh-guide.json
 ```
 
-Record the scores that actually come back. Do not treat a lab run as a ranking claim.
+Record the scores that actually come back. Do not treat a lab run as a ranking claim, and do not treat three routes as a measurement of the whole site.
 
-A headless Chrome lab run on 16 October 2026, against `next start` in this environment, scored:
-
-| Route | Performance | Accessibility | Best practices | SEO |
-| --- | --- | --- | --- | --- |
-| `/` | 94 | 100 | 100 | 100 |
-| `/calculators/fd` after the static shell fix | 95 | 100 | 100 | 100 |
-| `/learn/compound-interest` | 96 | 100 | 100 | 100 |
-
-The FD page's remaining performance gap was Largest Contentful Paint at about 2.7 seconds in that run. Cumulative layout shift on that run was 0. These are lab numbers, not field Core Web Vitals.
+The reports committed from the 16 October 2026 lab run are the JSON files in `docs/audits/lighthouse/`. `SUMMARY.json` is extracted from those files by `node scripts/lighthouse-extract.mjs`. Read the `fetchTime`, `lighthouseVersion`, and category `score` fields there. Earlier hand-written tables in this doc were removed because a later run did not match them.
 
 ## Review skills that were not installed
 
-These were looked for and not found in the agent skill directories:
+Checked again on 16 October 2026 by searching the agent skill directories. These were looked for and not found:
 
 - `thermonuclear-code-review` and `thermo-nuclear-code-quality-review`
 - `antivibe` and `antivibe-code-learning`

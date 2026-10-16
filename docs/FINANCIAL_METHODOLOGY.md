@@ -1,6 +1,6 @@
 # Financial methodology
 
-Methodology version: `2026.10.1` in `lib/finance/version.ts`.
+Methodology version: `2026.10.2` in `lib/finance/version.ts`.
 
 Display rounding uses `Intl` and, for tax, the nearest rupee after the full calculation. Intermediate steps stay in floating point. Section 288A rounding of total income to the nearest ₹10 is not applied.
 
@@ -38,7 +38,9 @@ Display rounding uses `Intl` and, for tax, the nearest rupee after the full calc
 
 New regime: nil to ₹4 lakh, then 5, 10, 15, 20, 25, and 30 percent. Rebate up to ₹60,000 if taxable income does not exceed ₹12 lakh, for residents. Marginal relief limits the pre-cess tax to the income above ₹12 lakh.
 
-Old regime basic exemption: ₹2.5 lakh below 60, ₹3 lakh from 60 to 79, ₹5 lakh from 80. Rebate up to ₹12,500 if taxable income does not exceed ₹5 lakh.
+Old regime basic exemption: ₹2.5 lakh below 60, ₹3 lakh from 60 to 79, ₹5 lakh from 80. Those higher exemptions are for residents. A non-resident is estimated on the below-60 slabs even if an older age is selected. Rebate up to ₹12,500 if taxable income does not exceed ₹5 lakh, and only for residents.
+
+Section 288A (total income to the nearest ₹10) is not applied. Section 288B rounds tax to the nearest rupee, not the nearest ₹10. This estimator rounds tax, surcharge, and cess separately, so the displayed total can differ by ₹1 from rounding the combined figure once.
 
 Standard deduction: ₹75,000 new regime, ₹50,000 old regime, salary only.
 

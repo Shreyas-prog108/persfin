@@ -1,0 +1,396 @@
+{
+  "generatedFrom": [
+    "docs/audits/lighthouse/home.json",
+    "docs/audits/lighthouse/fd.json",
+    "docs/audits/lighthouse/compound-interest.json"
+  ],
+  "reports": [
+    {
+      "file": "docs/audits/lighthouse/home.json",
+      "lighthouseVersion": "12.8.2",
+      "fetchTime": "2026-10-16T17:45:42.959Z",
+      "requestedUrl": "http://127.0.0.1:3000/",
+      "finalUrl": "http://127.0.0.1:3000/",
+      "categories": {
+        "performance": {
+          "title": "Performance",
+          "score": 0.93
+        },
+        "accessibility": {
+          "title": "Accessibility",
+          "score": 1
+        },
+        "best-practices": {
+          "title": "Best Practices",
+          "score": 1
+        },
+        "seo": {
+          "title": "SEO",
+          "score": 1
+        }
+      },
+      "metrics": {
+        "first-contentful-paint": {
+          "score": 0.99,
+          "numericValue": 1223.23575,
+          "displayValue": "1.2 s"
+        },
+        "largest-contentful-paint": {
+          "score": 0.74,
+          "numericValue": 3130.4905000000003,
+          "displayValue": "3.1 s"
+        },
+        "total-blocking-time": {
+          "score": 0.99,
+          "numericValue": 65,
+          "displayValue": "70 ms"
+        },
+        "cumulative-layout-shift": {
+          "score": 1,
+          "numericValue": 0,
+          "displayValue": "0"
+        },
+        "speed-index": {
+          "score": 1,
+          "numericValue": 1223.23575,
+          "displayValue": "1.2 s"
+        },
+        "interactive": {
+          "score": 0.94,
+          "numericValue": 3288.2357500000007,
+          "displayValue": "3.3 s"
+        }
+      },
+      "auditsBelowPerfect": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.99,
+          "displayValue": "1.2 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.74,
+          "displayValue": "3.1 s"
+        },
+        {
+          "id": "total-blocking-time",
+          "title": "Total Blocking Time",
+          "score": 0.99,
+          "displayValue": "70 ms"
+        },
+        {
+          "id": "max-potential-fid",
+          "title": "Max Potential First Input Delay",
+          "score": 0.93,
+          "displayValue": "120 ms"
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.94,
+          "displayValue": "3.3 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "title": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "3,130 ms"
+        },
+        {
+          "id": "render-blocking-resources",
+          "title": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms"
+        },
+        {
+          "id": "unused-javascript",
+          "title": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 29 KiB"
+        },
+        {
+          "id": "legacy-javascript",
+          "title": "Avoid serving legacy JavaScript to modern browsers",
+          "score": 0,
+          "displayValue": "Est savings of 13 KiB"
+        },
+        {
+          "id": "legacy-javascript-insight",
+          "title": "Legacy JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 14 KiB"
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "displayValue": null
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 560 ms"
+        }
+      ]
+    },
+    {
+      "file": "docs/audits/lighthouse/fd.json",
+      "lighthouseVersion": "12.8.2",
+      "fetchTime": "2026-10-16T17:45:54.364Z",
+      "requestedUrl": "http://127.0.0.1:3000/calculators/fd",
+      "finalUrl": "http://127.0.0.1:3000/calculators/fd",
+      "categories": {
+        "performance": {
+          "title": "Performance",
+          "score": 0.93
+        },
+        "accessibility": {
+          "title": "Accessibility",
+          "score": 1
+        },
+        "best-practices": {
+          "title": "Best Practices",
+          "score": 1
+        },
+        "seo": {
+          "title": "SEO",
+          "score": 1
+        }
+      },
+      "metrics": {
+        "first-contentful-paint": {
+          "score": 0.95,
+          "numericValue": 1516.1309999999999,
+          "displayValue": "1.5 s"
+        },
+        "largest-contentful-paint": {
+          "score": 0.85,
+          "numericValue": 2710.754,
+          "displayValue": "2.7 s"
+        },
+        "total-blocking-time": {
+          "score": 0.92,
+          "numericValue": 176.99999999999977,
+          "displayValue": "180 ms"
+        },
+        "cumulative-layout-shift": {
+          "score": 1,
+          "numericValue": 0,
+          "displayValue": "0"
+        },
+        "speed-index": {
+          "score": 1,
+          "numericValue": 1516.1309999999999,
+          "displayValue": "1.5 s"
+        },
+        "interactive": {
+          "score": 0.87,
+          "numericValue": 4089.6309999999994,
+          "displayValue": "4.1 s"
+        }
+      },
+      "auditsBelowPerfect": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.95,
+          "displayValue": "1.5 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.7 s"
+        },
+        {
+          "id": "total-blocking-time",
+          "title": "Total Blocking Time",
+          "score": 0.92,
+          "displayValue": "180 ms"
+        },
+        {
+          "id": "max-potential-fid",
+          "title": "Max Potential First Input Delay",
+          "score": 0.88,
+          "displayValue": "140 ms"
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.87,
+          "displayValue": "4.1 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "title": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "2,710 ms"
+        },
+        {
+          "id": "render-blocking-resources",
+          "title": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms"
+        },
+        {
+          "id": "unused-javascript",
+          "title": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 69 KiB"
+        },
+        {
+          "id": "legacy-javascript",
+          "title": "Avoid serving legacy JavaScript to modern browsers",
+          "score": 0,
+          "displayValue": "Est savings of 13 KiB"
+        },
+        {
+          "id": "legacy-javascript-insight",
+          "title": "Legacy JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 14 KiB"
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "displayValue": null
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 840 ms"
+        }
+      ]
+    },
+    {
+      "file": "docs/audits/lighthouse/compound-interest.json",
+      "lighthouseVersion": "12.8.2",
+      "fetchTime": "2026-10-16T17:46:06.514Z",
+      "requestedUrl": "http://127.0.0.1:3000/learn/compound-interest",
+      "finalUrl": "http://127.0.0.1:3000/learn/compound-interest",
+      "categories": {
+        "performance": {
+          "title": "Performance",
+          "score": 0.96
+        },
+        "accessibility": {
+          "title": "Accessibility",
+          "score": 1
+        },
+        "best-practices": {
+          "title": "Best Practices",
+          "score": 1
+        },
+        "seo": {
+          "title": "SEO",
+          "score": 1
+        }
+      },
+      "metrics": {
+        "first-contentful-paint": {
+          "score": 0.99,
+          "numericValue": 1212.95595,
+          "displayValue": "1.2 s"
+        },
+        "largest-contentful-paint": {
+          "score": 0.86,
+          "numericValue": 2675.6373000000003,
+          "displayValue": "2.7 s"
+        },
+        "total-blocking-time": {
+          "score": 1,
+          "numericValue": 33.5,
+          "displayValue": "30 ms"
+        },
+        "cumulative-layout-shift": {
+          "score": 1,
+          "numericValue": 0,
+          "displayValue": "0"
+        },
+        "speed-index": {
+          "score": 1,
+          "numericValue": 1212.95595,
+          "displayValue": "1.2 s"
+        },
+        "interactive": {
+          "score": 0.95,
+          "numericValue": 3062.4559500000005,
+          "displayValue": "3.1 s"
+        }
+      },
+      "auditsBelowPerfect": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.99,
+          "displayValue": "1.2 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.86,
+          "displayValue": "2.7 s"
+        },
+        {
+          "id": "max-potential-fid",
+          "title": "Max Potential First Input Delay",
+          "score": 0.93,
+          "displayValue": "120 ms"
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.95,
+          "displayValue": "3.1 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "title": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "2,680 ms"
+        },
+        {
+          "id": "render-blocking-resources",
+          "title": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms"
+        },
+        {
+          "id": "unused-javascript",
+          "title": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 67 KiB"
+        },
+        {
+          "id": "legacy-javascript",
+          "title": "Avoid serving legacy JavaScript to modern browsers",
+          "score": 0.5,
+          "displayValue": "Est savings of 13 KiB"
+        },
+        {
+          "id": "legacy-javascript-insight",
+          "title": "Legacy JavaScript",
+          "score": 0.5,
+          "displayValue": "Est savings of 14 KiB"
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "displayValue": null
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 570 ms"
+        }
+      ]
+    }
+  ]
+}

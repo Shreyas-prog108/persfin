@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   absoluteReturn,
   accruedInterest,
+  totalReturn,
   bondCleanPrice,
   bondYieldToMaturity,
   cagr,
@@ -130,6 +131,12 @@ describe("inflation, CAGR, and XIRR", () => {
     expect(cagr(100, 121, 2)).toBeCloseTo(0.1, 8);
   });
 
+  it("refuses CAGR when ending wealth is not positive", () => {
+    expect(() =>
+      totalReturn({ amountInvested: 100, endingValue: 0, incomeReceived: 0, years: 1 }),
+    ).toThrow(/CAGR is not defined/);
+  });
+
   it("uses a 365-day year for dated CAGR and XIRR", () => {
     expect(cagrBetweenDates(10_000, 12_000, "2021-01-01", "2022-01-01")).toBeCloseTo(0.2, 8);
     const exact = xirr([
@@ -149,6 +156,15 @@ describe("inflation, CAGR, and XIRR", () => {
     expect(result.status).toBe("multiple");
     expect(result.rate).toBeNull();
     expect(result.candidates.map((rate) => Number(rate.toFixed(6)))).toEqual([0.1, 0.2]);
+  });
+
+  it("finds the rate for very large cash flows", () => {
+    const result = xirr([
+      { date: "2021-01-01", amount: -1_000_000_000 },
+      { date: "2022-01-01", amount: 1_200_000_000 },
+    ]);
+    expect(result.status).toBe("unique");
+    expect(result.rate).toBeCloseTo(0.2, 6);
   });
 
   it("rejects cash flows that have no sign change", () => {
@@ -348,6 +364,18 @@ describe("tax rules", () => {
   it("uses the higher old-regime exemption for a senior citizen", () => {
     const result = estimateIncomeTax({ ...base, regime: "old", age: "60-to-79", grossIncome: 400_000 });
     expect(result.totalTax).toBe(0);
+  });
+
+  it("does not give a non-resident the senior-citizen exemption", () => {
+    const result = estimateIncomeTax({
+      ...base,
+      regime: "old",
+      age: "60-to-79",
+      resident: false,
+      grossIncome: 400_000,
+    });
+    expect(result.totalTax).toBe(7_800);
+    expect(result.notes.some((note) => note.includes("below-60"))).toBe(true);
   });
 
   it("taxes equity long-term gains above ₹1.25 lakh at 12.5% plus cess", () => {
