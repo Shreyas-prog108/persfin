@@ -1,3 +1,5 @@
+import type { Figure } from "@/lib/finance/figures";
+
 export interface ResultMetric {
   label: string;
   value: string;
@@ -17,6 +19,8 @@ export interface ResultTable {
 }
 
 export interface CalculatorResult {
+  /** Numeric outputs copied from the calculation engine. Display strings are not a substitute. */
+  figures: Figure[];
   headline: string;
   detail?: string;
   metrics: ResultMetric[];

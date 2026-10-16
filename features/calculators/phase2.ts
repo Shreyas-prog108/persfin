@@ -3,6 +3,7 @@ import {
   bondCleanPrice,
   bondYieldToMaturity,
   couponIncome,
+  count,
   currentYield,
   dividendYield,
   epfCorpus,
@@ -11,7 +12,10 @@ import {
   EPF_LAST_NOTIFIED_RATE_FY2025_26,
   fireEstimate,
   fixedDeposit,
+  inr,
+  months as monthFigure,
   npsProjection,
+  rate,
   ppfMaturity,
   PPF_ANNUAL_DEPOSIT_CEILING,
   realReturnAfterAnnualTax,
@@ -52,10 +56,15 @@ export const phase2: Calculator[] = [
       const input = bondInput(values);
       const solved = bondYieldToMaturity({ ...input, cleanPrice: readNumber(values, "price") });
       if (!solved.converged) {
-        return { headline: "The yield did not converge", metrics: [], notes: [], warnings: ["Try a different price or a shorter bond. The solver stopped without a reliable root."] };
+        return { figures: [rate("yieldToMaturity", null)], headline: "The yield did not converge", metrics: [], notes: [], warnings: ["Try a different price or a shorter bond. The solver stopped without a reliable root."] };
       }
       const couponCash = input.faceValue * input.annualCouponRate;
       return {
+        figures: [
+          rate("yieldToMaturity", solved.yield),
+          rate("couponRate", input.annualCouponRate),
+          rate("currentYield", currentYield(couponCash, readNumber(values, "price"))),
+        ],
         headline: `Yield to maturity is ${formatPercent(solved.yield)}`,
         detail: `Current yield, coupon cash divided by clean price, is ${formatPercent(currentYield(couponCash, readNumber(values, "price")))}.`,
         metrics: [
@@ -99,6 +108,7 @@ export const phase2: Calculator[] = [
         daysInCouponPeriod: readNumber(values, "daysPeriod"),
       });
       return {
+        figures: [inr("cleanPrice", clean), inr("accruedInterest", accrued), inr("dirtyPrice", clean + accrued), rate("yield", readNumber(values, "yield"))],
         headline: `Clean price is ${formatINR(clean, 2)}`,
         detail: `Dirty price, clean plus accrued interest, is ${formatINR(clean + accrued, 2)}.`,
         metrics: [
@@ -144,6 +154,11 @@ export const phase2: Calculator[] = [
         frequency,
       });
       return {
+        figures: [
+          inr("cashCoupons", result.cashCoupons),
+          inr("reinvestedValue", result.reinvestedValue),
+          inr("annualCoupon", readNumber(values, "face") * readNumber(values, "coupon")),
+        ],
         headline: `Cash coupons are ${formatINR(result.cashCoupons, 0)}`,
         detail: `If those coupons are reinvested at your assumed rate, they grow to ${formatINR(result.reinvestedValue, 0)}.`,
         metrics: [
@@ -197,6 +212,13 @@ export const phase2: Calculator[] = [
         frequency: 1,
       });
       return {
+        figures: [
+          inr("fdMaturity", fd.maturityValue),
+          rate("fdEffectiveAnnualRate", fd.effectiveAnnualRate),
+          rate("bondYield", readNumber(values, "ytm")),
+          inr("bondCleanPrice", price),
+          inr("bondAnnualCoupon", readNumber(values, "amount") * readNumber(values, "coupon")),
+        ],
         headline: `FD maturity ${formatINR(fd.maturityValue, 0)}; bond clean price ${formatINR(price, 0)} per ${formatINR(readNumber(values, "amount"), 0)} face`,
         detail: "The FD figure is a maturity amount. The bond figure is today's clean price at the yield you entered. They answer different questions.",
         metrics: [
@@ -248,6 +270,7 @@ export const phase2: Calculator[] = [
         style: readString(values, "style") === "payout" ? "payout" : "cumulative",
       });
       return {
+        figures: [inr("preTaxValue", result.preTaxValue), inr("taxPaid", result.taxPaid), inr("postTaxCorpus", result.postTaxCorpus), inr("netInterest", result.netInterest)],
         headline: `Tax paid on the interest is ${formatINR(result.taxPaid, 0)}`,
         detail: `Net interest after that tax is ${formatINR(result.netInterest, 0)}.`,
         metrics: [
@@ -293,6 +316,7 @@ export const phase2: Calculator[] = [
         timing: readString(values, "timing") === "end" ? "end" : "start",
       });
       return {
+        figures: [inr("maturity", result.maturity), inr("deposited", result.invested), inr("interest", result.interest)],
         headline: `Projected maturity is ${formatINR(result.maturity, 0)}`,
         detail: `Deposits ${formatINR(result.invested, 0)}. Interest ${formatINR(result.interest, 0)}.`,
         metrics: [
@@ -348,6 +372,13 @@ export const phase2: Calculator[] = [
         openingBalance: readNumber(values, "opening"),
       });
       return {
+        figures: [
+          inr("epfBalance", result.epfBalance),
+          inr("employeeContribution", result.employeeContribution),
+          inr("employerEpfContribution", result.employerEpfContribution),
+          inr("interest", result.interest),
+          inr("epsContribution", result.epsContribution),
+        ],
         headline: `Projected EPF balance is ${formatINR(result.epfBalance, 0)}`,
         detail: `This month, employee ${formatINR(result.monthlyEmployee, 0)}, employer to EPF ${formatINR(result.monthlyEmployerEpf, 0)}, EPS ${formatINR(result.monthlyEps, 0)}.`,
         metrics: [
@@ -387,6 +418,7 @@ export const phase2: Calculator[] = [
       const wage = readNumber(values, "wage");
       const pension = epsPension(Array.from({ length: 60 }, () => wage), years);
       return {
+        figures: [inr("monthlyPension", pension), inr("annualPension", pension * 12), count("yearsOfService", years)],
         headline: years < 10 ? "Fewer than 10 years may not qualify for a monthly EPS pension" : `Estimated pension is ${formatINR(pension, 0)} a month`,
         detail: "Pensionable salary here is the wage you entered, already capped.",
         metrics: [
@@ -438,6 +470,13 @@ export const phase2: Calculator[] = [
         timing: asTiming(readString(values, "timing")),
       });
       return {
+        figures: [
+          inr("corpus", result.corpus),
+          inr("contributed", result.invested),
+          inr("annuityCorpus", result.annuityCorpus),
+          inr("lumpSum", result.lumpSum),
+          inr("annualPension", result.annualPension),
+        ],
         headline: `Projected corpus is ${formatINR(result.corpus, 0)}`,
         detail: `Assumed annual pension from the annuity is ${formatINR(result.annualPension, 0)}.`,
         metrics: [
@@ -486,6 +525,7 @@ export const phase2: Calculator[] = [
         timing: asTiming(readString(values, "timing")),
       });
       return {
+        figures: [monthFigure("monthsLasted", result.monthsLasted), inr("totalWithdrawn", result.totalWithdrawn), inr("endingCorpus", result.endingCorpus)],
         headline: result.depleted
           ? `The corpus runs out in ${result.monthsLasted} months under this return`
           : `After ${result.monthsLasted} months, ${formatINR(result.endingCorpus, 0)} is still left`,
@@ -539,10 +579,11 @@ export const phase2: Calculator[] = [
       }));
       const result = xirr(flows);
       if (result.status === "no-root") {
-        return { headline: "No rate sets the present value to zero", metrics: [], notes: ["Try another set of dates and amounts."], warnings: ["Newton-Raphson did not find a root from the starting guesses."] };
+        return { figures: [rate("xirr", null)], headline: "No rate sets the present value to zero", metrics: [], notes: ["Try another set of dates and amounts."], warnings: ["Newton-Raphson did not find a root from the starting guesses."] };
       }
       if (result.status === "multiple") {
         return {
+          figures: result.candidates.map((candidate, index) => rate(`candidateRate${index + 1}`, candidate)),
           headline: "More than one rate fits these cash flows",
           metrics: result.candidates.map((rate, index) => ({ label: `Possible rate ${index + 1}`, value: formatPercent(rate) })),
           notes: ["When several roots exist, none is reported as the single XIRR."],
@@ -550,6 +591,7 @@ export const phase2: Calculator[] = [
         };
       }
       return {
+        figures: [rate("xirr", result.rate)],
         headline: `XIRR is ${formatPercent(result.rate ?? 0)}`,
         detail: "The rate uses actual days divided by 365.",
         metrics: [{ label: "XIRR", value: formatPercent(result.rate ?? 0, 2) }],
@@ -584,6 +626,7 @@ export const phase2: Calculator[] = [
       const cost = readNumber(values, "cost");
       const yieldNow = dividendYield(dividend, price);
       return {
+        figures: [rate("yield", yieldNow), ...(cost > 0 ? [rate("yieldOnCost", dividend / cost)] : [])],
         headline: `Dividend yield is ${formatPercent(yieldNow)}`,
         detail: cost > 0 ? `Yield on your cost is ${formatPercent(dividendYield(dividend, cost))}.` : "Enter a cost above zero to see yield on cost.",
         metrics: [
@@ -624,6 +667,7 @@ export const phase2: Calculator[] = [
         years: readNumber(values, "years"),
       });
       return {
+        figures: [inr("gain", result.gain), rate("absoluteReturn", result.absolute), rate("cagr", result.cagr)],
         headline: `Total gain is ${formatINR(result.gain, 0)}, or ${formatPercent(result.absolute)}`,
         detail: `CAGR on the invested amount plus the gain is ${formatPercent(result.cagr ?? 0)}.`,
         metrics: [
@@ -663,6 +707,7 @@ export const phase2: Calculator[] = [
       const afterTax = nominal * (1 - tax);
       const real = realReturnAfterAnnualTax(nominal, inflation, tax);
       return {
+        figures: [rate("afterTaxNominal", afterTax), rate("realReturn", real)],
         headline: `Real return after tax is ${formatPercent(real)}`,
         detail: `The after-tax nominal return is ${formatPercent(afterTax)}.`,
         metrics: [
@@ -711,6 +756,13 @@ export const phase2: Calculator[] = [
         timing: asTiming(readString(values, "timing")),
       });
       return {
+        figures: [
+          inr("corpusNeeded", result.corpusNeeded),
+          inr("projectedCurrentCorpus", result.projectedCurrentCorpus),
+          inr("gap", Math.max(0, result.gap)),
+          inr("requiredMonthly", result.requiredMonthly),
+          inr("expenseAtRetirement", result.expenseAtRetirement),
+        ],
         headline: result.gap <= 0
           ? "Current savings project above the corpus this scenario needs"
           : `This scenario needs about ${formatINR(result.requiredMonthly, 0)} a month`,
@@ -761,6 +813,11 @@ export const phase2: Calculator[] = [
         savingsGrowth: readNumber(values, "savingsGrowth"),
       });
       return {
+        figures: [
+          inr("fireNumberToday", result.fireNumberToday),
+          rate("progress", result.progress),
+          count("years", result.years),
+        ],
         headline: result.reachable
           ? `At your withdrawal rate, the moving target is reached in ${result.years} years`
           : "The target is not reached within 80 years under these assumptions",
@@ -815,6 +872,11 @@ export const phase2: Calculator[] = [
         returns: [readNumber(values, "low"), readNumber(values, "mid"), readNumber(values, "high")],
       });
       return {
+        figures: [
+          rate("firstYearWithdrawalRate", spending / corpus),
+          ...result.rows.map((row, index) => count(`scenario${index + 1}YearsLasted`, row.yearsLasted)),
+          ...result.rows.map((row, index) => inr(`scenario${index + 1}Ending`, row.ending)),
+        ],
         headline: `The first-year withdrawal is ${formatPercent(spending / corpus)} of the corpus`,
         detail: "Each row is a constant return. A real sequence of returns can fail even when the average survives.",
         metrics: result.rows.map((row) => ({

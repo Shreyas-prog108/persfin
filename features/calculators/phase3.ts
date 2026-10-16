@@ -5,7 +5,11 @@ import {
   emergencyFund,
   estimateCapitalGain,
   estimateIncomeTax,
+  count,
   goalInvestment,
+  inr,
+  months as monthFigure,
+  rate,
   homeLoanAffordability,
   hraExemption,
   insuranceNeed,
@@ -99,6 +103,7 @@ export const phase3: Calculator[] = [
     calculate: (values) => {
       const result = estimateIncomeTax(taxInput(values, readString(values, "regime") as TaxRegime));
       return {
+        figures: [inr("taxableIncome", result.taxableIncome), inr("taxAfterRelief", result.taxAfterRelief), inr("surcharge", result.surcharge), inr("cess", result.cess), inr("totalTax", result.totalTax)],
         headline: `Estimated tax is ${formatINR(result.totalTax, 0)}`,
         detail: `${result.rules.financialYear}, ${readString(values, "regime")} regime. Taxable income ${formatINR(result.taxableIncome, 0)}.`,
         metrics: [
@@ -143,6 +148,7 @@ export const phase3: Calculator[] = [
     calculate: (values) => {
       const result = compareRegimes(taxInput(values, "new"));
       return {
+        figures: [inr("newRegimeTax", result.newer.totalTax), inr("oldRegimeTax", result.old.totalTax), inr("difference", result.difference)],
         headline: `The ${result.lower} regime is lower here by ${formatINR(result.difference, 0)}`,
         detail: "Lower on these numbers is not automatically the regime you should file. Check deductions you did not enter.",
         metrics: [
@@ -213,6 +219,7 @@ export const phase3: Calculator[] = [
         annualIncomeTax: tax.totalTax,
       });
       return {
+        figures: [inr("monthlyGross", takeHome.monthlyGross), inr("monthlyEmployeePf", takeHome.monthlyEmployeePf), inr("monthlyTax", takeHome.monthlyTax), inr("monthlyTakeHome", takeHome.monthlyTakeHome), inr("annualTax", tax.totalTax)],
         headline: `Estimated monthly take-home is ${formatINR(takeHome.monthlyTakeHome, 0)}`,
         detail: `Annual tax used in the estimate is ${formatINR(tax.totalTax, 0)}.`,
         metrics: [
@@ -261,6 +268,7 @@ export const phase3: Calculator[] = [
         annualIncomeTax: readNumber(values, "tax"),
       });
       return {
+        figures: [inr("monthlyGross", result.monthlyGross), inr("employerPf", result.monthlyEmployerPf), inr("employeePf", result.monthlyEmployeePf), inr("specialAllowance", result.specialAllowanceMonthly), inr("monthlyTakeHome", result.monthlyTakeHome)],
         headline: `Monthly take-home is ${formatINR(result.monthlyTakeHome, 0)} before any deduction not listed here`,
         detail: `Special allowance is the gross left after basic and HRA: ${formatINR(result.specialAllowanceMonthly, 0)} a month.`,
         metrics: [
@@ -309,6 +317,7 @@ export const phase3: Calculator[] = [
         regime: readString(values, "regime") === "new" ? "new" : "old",
       });
       return {
+        figures: [inr("exemption", result.exemption), inr("taxableHra", result.taxableHra)],
         headline: `Exempt HRA is ${formatINR(result.exemption, 0)}`,
         detail: `Taxable HRA is ${formatINR(result.taxableHra, 0)}.`,
         metrics: [
@@ -352,6 +361,7 @@ export const phase3: Calculator[] = [
         months: readNumber(values, "months"),
       });
       return {
+        figures: [inr("maxEmi", result.maxEmi), inr("maxLoan", result.maxLoan)],
         headline: result.limitedByExistingEmi
           ? "Existing EMIs already use the share of income you allowed"
           : `This planning limit supports about ${formatINR(result.maxLoan, 0)}`,
@@ -401,6 +411,7 @@ export const phase3: Calculator[] = [
         prepayment: { month: readNumber(values, "prepayMonth"), amount: readNumber(values, "prepay") },
       });
       return {
+        figures: [inr("originalInterest", base.totalInterest), inr("interestWithPrepayment", changed.totalInterest), inr("interestSaved", base.totalInterest - changed.totalInterest), count("monthsSaved", base.months - changed.months)],
         headline: `Interest falls by ${formatINR(base.totalInterest - changed.totalInterest, 0)}`,
         detail: `Tenure goes from ${base.months} months to ${changed.months} months if the EMI stays ${formatINR(base.emi, 0)}.`,
         metrics: [
@@ -456,6 +467,7 @@ export const phase3: Calculator[] = [
         investmentReturn: readNumber(values, "invest"),
       });
       return {
+        figures: [inr("homeEquity", result.buyNetWorth), inr("rentPath", result.rentNetWorth), inr("emi", result.emi), inr("propertyValue", result.propertyValue), inr("remainingLoan", result.remainingLoan)],
         headline: `Buy ends at ${formatINR(result.buyNetWorth, 0)} of home equity. Rent ends at ${formatINR(result.rentNetWorth, 0)} invested.`,
         detail: "Home equity is not cash until you sell, and the invested path is not a house.",
         metrics: [
@@ -518,6 +530,7 @@ export const phase3: Calculator[] = [
         annualFee: readNumber(values, "fee"),
       });
       return {
+        figures: [inr("uncappedValue", result.uncappedValue), inr("cappedValue", result.cappedValue), inr("netValue", result.netValue), inr("eligibleSpend", result.eligibleSpend)],
         headline: `Net reward after the fee is ${formatINR(result.netValue, 0)}`,
         detail: `Eligible spend ${formatINR(result.eligibleSpend, 0)}. Excluded spend ${formatINR(result.excludedSpend, 0)}.`,
         metrics: [
@@ -578,6 +591,7 @@ export const phase3: Calculator[] = [
       const chosen = debtPayoff(debts, readNumber(values, "extra"), strategy);
       const other = debtPayoff(debts, readNumber(values, "extra"), strategy === "avalanche" ? "snowball" : "avalanche");
       return {
+        figures: [monthFigure("months", chosen.months), inr("interest", chosen.totalInterest), inr("totalPaid", chosen.totalPaid), monthFigure("otherOrderMonths", other.months)],
         headline: chosen.paidOff
           ? `${strategy === "avalanche" ? "Highest-rate" : "Smallest-balance"} order clears the debts in ${chosen.months} months`
           : "The debts are not cleared inside the month cap",
@@ -616,6 +630,7 @@ export const phase3: Calculator[] = [
     calculate: (values) => {
       const result = emergencyFund(readNumber(values, "expenses"), readNumber(values, "saved"));
       return {
+        figures: result.scenarios.flatMap((scenario) => [inr(`target${scenario.months}Months`, scenario.target), inr(`gap${scenario.months}Months`, scenario.gap)]),
         headline: "There is no single correct emergency fund. Here are three targets.",
         detail: "Essentials are rent, food, utilities, school fees, insurance, and loan EMIs. Leave out holidays.",
         metrics: result.scenarios.map((scenario) => ({
@@ -665,6 +680,7 @@ export const phase3: Calculator[] = [
         discountRate: readNumber(values, "discount"),
       });
       return {
+        figures: [inr("incomeReplacement", result.incomeReplacement), inr("grossNeed", result.grossNeed), inr("coverGap", result.netCoverGap)],
         headline: `The gap on these inputs is ${formatINR(result.netCoverGap, 0)}`,
         detail: "This estimates a need. It does not say that a particular policy is suitable.",
         metrics: [
@@ -713,6 +729,7 @@ export const phase3: Calculator[] = [
       });
       const last = result.rows[result.rows.length - 1];
       return {
+        figures: [inr("endingSalary", last?.salary ?? 0), inr("endingRealSalary", last?.realSalary ?? 0), inr("endingSavings", last?.savings ?? 0), rate("endingSavingsRate", last?.savingsRate ?? null)],
         headline: last ? `In year ${last.year}, real salary is ${formatINR(last.realSalary, 0)} in today's rupees` : "Add a longer period.",
         detail: last ? `Savings that year are ${formatINR(last.savings, 0)}, a ${formatPercent(last.savingsRate)} savings rate.` : "",
         metrics: [
@@ -752,6 +769,7 @@ export const phase3: Calculator[] = [
     calculate: (values) => {
       const result = netWorth(toItems(readRows(values, "assets")), toItems(readRows(values, "liabilities")));
       return {
+        figures: [inr("assets", result.assets), inr("liabilities", result.liabilities), inr("netWorth", result.net)],
         headline: `Net worth is ${formatINR(result.net, 0)}`,
         detail: `Assets ${formatINR(result.assets, 0)}. Liabilities ${formatINR(result.liabilities, 0)}.`,
         metrics: [
@@ -801,6 +819,7 @@ export const phase3: Calculator[] = [
         marginalSlabRate: readNumber(values, "slab"),
       });
       return {
+        figures: [inr("taxableGain", result.taxableGain), inr("taxBeforeCess", result.taxBeforeCess), inr("cess", result.cess), inr("totalTax", result.totalTax), rate("rateApplied", result.rateApplied)],
         headline: `Estimated tax including cess is ${formatINR(result.totalTax, 0)}`,
         detail: `Taxable gain ${formatINR(result.taxableGain, 0)} at ${formatPercent(result.rateApplied)}.`,
         metrics: [
@@ -837,13 +856,14 @@ export const phase3: Calculator[] = [
       const income = readNumber(values, "income");
       const expenses = readNumber(values, "expenses");
       const savings = income - expenses;
-      const rate = savings / income;
+      const savingsRate = savings / income;
       return {
-        headline: `Savings rate is ${formatPercent(rate)}`,
+        figures: [inr("monthlySavings", savings), rate("savingsRate", savingsRate)],
+        headline: `Savings rate is ${formatPercent(savingsRate)}`,
         detail: `You save ${formatINR(savings, 0)} a month.`,
         metrics: [
           { label: "Monthly savings", value: formatINR(savings, 0) },
-          { label: "Savings rate", value: formatPercent(rate) },
+          { label: "Savings rate", value: formatPercent(savingsRate) },
           { label: "Months of expenses covered by one year of savings", value: expenses === 0 ? "—" : (savings * 12 / expenses).toFixed(1) },
         ],
         notes: ["A negative rate means expenses are above income. The emergency-fund page is the next place to look."],
@@ -890,6 +910,7 @@ function goalCopy(slug: string, title: string, shortTitle: string, description: 
         convention: "effective-annual",
       });
       return {
+        figures: [inr("futureCost", result.futureTarget), inr("requiredMonthly", result.requiredMonthly), inr("requiredLumpSumToday", result.requiredLumpSumToday)],
         headline: result.requiredMonthly === 0 && result.gap <= 0
           ? `${readString(values, "name")} is funded on these assumptions`
           : `${readString(values, "name")} needs about ${formatINR(result.requiredMonthly, 0)} a month`,

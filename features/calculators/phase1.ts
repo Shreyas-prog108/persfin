@@ -7,8 +7,11 @@ import {
   fixedDeposit,
   futureValueLumpSum,
   goalInvestment,
+  inr,
   inflationImpact,
+  months as monthFigure,
   monthlyAnnuity,
+  rate,
   simpleInterest,
   stepUpSip,
 } from "@/lib/finance";
@@ -54,6 +57,13 @@ export const phase1: Calculator[] = [
         payout,
       });
       return {
+        figures: [
+          inr("interest", result.totalInterest),
+          inr("principalReturned", result.maturityValue),
+          inr("totalReceived", result.totalReceived),
+          rate("effectiveAnnualRate", result.effectiveAnnualRate),
+          inr("periodicPayout", result.periodicPayout),
+        ],
         headline: payout === "cumulative"
           ? `Maturity value is ${formatINR(result.maturityValue, 0)}`
           : `Interest paid out is ${formatINR(result.totalInterest, 0)}`,
@@ -108,6 +118,11 @@ export const phase1: Calculator[] = [
         compoundsPerYear: COMPOUNDING_PERIODS[compounding],
       });
       return {
+        figures: [
+          inr("totalDeposited", result.totalInvested),
+          inr("interest", result.gain),
+          inr("maturityValue", result.maturityValue),
+        ],
         headline: `Maturity value is ${formatINR(result.maturityValue, 0)}`,
         detail: `You deposit ${formatINR(result.totalInvested, 0)} and earn ${formatINR(result.gain, 0)} of interest.`,
         metrics: [
@@ -155,6 +170,11 @@ export const phase1: Calculator[] = [
         convention: asConvention(readString(values, "convention")),
       });
       return {
+        figures: [
+          inr("invested", result.totalInvested),
+          inr("gain", result.gain),
+          inr("projectedValue", result.maturityValue),
+        ],
         headline: `Projected value is ${formatINR(result.maturityValue, 0)}`,
         detail: `Invested ${formatINR(result.totalInvested, 0)}. The rest is the assumed gain, not a promise.`,
         metrics: [
@@ -206,6 +226,7 @@ export const phase1: Calculator[] = [
         return { month: year * 12, invested: principal, value: futureValueLumpSum(principal, rate, year, convention, compounds) };
       });
       return {
+        figures: [inr("invested", principal), inr("gain", value - principal), inr("projectedValue", value)],
         headline: `Projected value is ${formatINR(value, 0)}`,
         detail: `Assumed gain: ${formatINR(value - principal, 0)}.`,
         metrics: [
@@ -255,6 +276,12 @@ export const phase1: Calculator[] = [
       });
       const lumpValue = futureValueLumpSum(lump, rate, months / 12, "effective-annual");
       return {
+        figures: [
+          inr("lumpSumValue", lumpValue),
+          inr("sipValue", sip.maturityValue),
+          inr("sipInvested", sip.totalInvested),
+          inr("difference", lumpValue - sip.maturityValue),
+        ],
         headline: `Lump sum projects to ${formatINR(lumpValue, 0)}; the SIP projects to ${formatINR(sip.maturityValue, 0)}`,
         detail: "These are different amounts of money invested at different times. A higher result is not automatically the better choice.",
         metrics: [
@@ -305,6 +332,11 @@ export const phase1: Calculator[] = [
         convention: asConvention(readString(values, "convention")),
       });
       return {
+        figures: [
+          inr("invested", result.totalInvested),
+          inr("gain", result.gain),
+          inr("projectedValue", result.maturityValue),
+        ],
         headline: `Projected value is ${formatINR(result.maturityValue, 0)}`,
         detail: `You invest ${formatINR(result.totalInvested, 0)}, including the later increases.`,
         metrics: [
@@ -346,6 +378,12 @@ export const phase1: Calculator[] = [
       });
       const yearly = yearlyBalance(schedule.rows);
       return {
+        figures: [
+          inr("emi", schedule.emi),
+          inr("totalInterest", schedule.totalInterest),
+          inr("totalPaid", schedule.totalPaid),
+          monthFigure("months", schedule.months),
+        ],
         headline: `EMI is ${formatINR(schedule.emi, 0)} a month`,
         detail: `Total interest is ${formatINR(schedule.totalInterest, 0)} over ${schedule.months} months.`,
         metrics: [
@@ -393,6 +431,12 @@ export const phase1: Calculator[] = [
       const simple = simpleInterest({ principal, annualNominalRate: rate, years });
       const compound = compoundInterest({ principal, annualNominalRate: rate, years, compoundsPerYear: compounds });
       return {
+        figures: [
+          inr("simpleInterest", simple),
+          inr("compoundInterest", compound),
+          inr("compoundMaturity", principal + compound),
+          inr("extraFromCompounding", compound - simple),
+        ],
         headline: `Compound interest is ${formatINR(compound, 0)}; simple interest is ${formatINR(simple, 0)}`,
         detail: `The gap is ${formatINR(compound - simple, 0)}.`,
         metrics: [
@@ -435,6 +479,11 @@ export const phase1: Calculator[] = [
         nominalAnnualReturn: readNumber(values, "nominal"),
       });
       return {
+        figures: [
+          inr("futureCost", result.futureCost),
+          inr("purchasingPower", result.purchasingPower),
+          rate("realAnnualReturn", result.realAnnualReturn),
+        ],
         headline: `In ${readNumber(values, "years")} years, the same purchase costs about ${formatINR(result.futureCost, 0)}`,
         detail: `Today's amount would have the buying power of ${formatINR(result.purchasingPower, 0)} after that inflation.`,
         metrics: [
@@ -477,16 +526,17 @@ export const phase1: Calculator[] = [
       const start = readNumber(values, "start");
       const end = readNumber(values, "end");
       const dated = readString(values, "useDates") === "yes";
-      const rate = dated
+      const rateValue = dated
         ? cagrBetweenDates(start, end, readString(values, "startDate"), readString(values, "endDate"))
         : cagr(start, end, readNumber(values, "years"));
       return {
-        headline: `CAGR is ${formatPercent(rate)}`,
+        figures: [rate("cagr", rateValue), inr("absoluteChange", end - start), rate("absoluteReturn", absoluteReturn(start, end))],
+        headline: `CAGR is ${formatPercent(rateValue)}`,
         detail: dated
           ? "The year fraction is actual days divided by 365, the same basis as the XIRR calculator."
           : "This uses the whole-year count you entered.",
         metrics: [
-          { label: "CAGR", value: formatPercent(rate, 2) },
+          { label: "CAGR", value: formatPercent(rateValue, 2) },
           { label: "Absolute change", value: formatINR(end - start) },
           { label: "Absolute return", value: formatPercent(absoluteReturn(start, end)) },
         ],
@@ -517,12 +567,13 @@ export const phase1: Calculator[] = [
     calculate: (values) => {
       const start = readNumber(values, "start");
       const end = readNumber(values, "end");
-      const rate = absoluteReturn(start, end);
+      const absoluteRate = absoluteReturn(start, end);
       return {
-        headline: `Absolute return is ${formatPercent(rate)}`,
+        figures: [rate("absoluteReturn", absoluteRate), inr("change", end - start)],
+        headline: `Absolute return is ${formatPercent(absoluteRate)}`,
         detail: `The value changed by ${formatINR(end - start, 0)}.`,
         metrics: [
-          { label: "Absolute return", value: formatPercent(rate) },
+          { label: "Absolute return", value: formatPercent(absoluteRate) },
           { label: "Gain or loss", value: formatINR(end - start) },
         ],
         notes: ["Absolute return does not say how long the change took. Use CAGR or XIRR for an annual figure."],
@@ -568,6 +619,14 @@ export const phase1: Calculator[] = [
         ? ["There is no time left for a SIP. The gap has to be funded now."]
         : [];
       return {
+        figures: [
+          inr("futureTarget", result.futureTarget),
+          inr("futureExisting", result.futureExisting),
+          inr("gap", Math.max(0, result.gap)),
+          inr("requiredMonthly", result.requiredMonthly),
+          inr("requiredLumpSumToday", result.requiredLumpSumToday),
+          inr("surplus", result.surplus),
+        ],
         headline: result.gap <= 0
           ? `Existing savings cover the inflated target, with ${formatINR(result.surplus, 0)} to spare`
           : `You need about ${formatINR(result.requiredMonthly, 0)} a month`,

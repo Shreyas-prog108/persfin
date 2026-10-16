@@ -42,7 +42,18 @@ Edit `lib/data-sources/registry.ts` and, if the figure is a rule, add or replace
 
 ## Why the UI does not own the maths
 
-The same function answers the page, the API, and `lib/agent/tools.ts`. A model that later explains a result has to call `executeCalculator`. It does not receive a database handle, and the tool does not read saved goals.
+`lib/finance` returns numbers. It does not import React, the calculator pages, or the agent.
+
+Each calculator calls those functions and then does two things with the same values:
+
+- `figures` keeps the rupees and rates for anything that must cite the result.
+- Headlines and `Intl` formatting are only for the page.
+
+`executeCalculator` in `lib/agent/tools.ts` returns `figures`, the formula, the assumptions, the limitations, and the warnings. It does not return the headline. `retrieveUserGoals` always refuses. Saved goals stay in the browser.
+
+`POST /api/calculate` uses that same tool. A future assistant is a client of these functions. It is not allowed to invent a maturity value, and it is not a place where the formula is rewritten.
+
+`tests/architecture/boundary.test.ts` checks the import direction and checks that the FD, EMI, and income-tax figures match a direct call to `lib/finance`.
 
 ## Alternatives considered
 

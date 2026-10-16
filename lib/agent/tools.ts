@@ -1,11 +1,12 @@
 import { articles, getArticle } from "@/lib/content/articles";
 import { dataSources, getDataSource } from "@/lib/data-sources/registry";
+import type { Figure } from "@/lib/finance/figures";
 import { FinanceError } from "@/lib/finance/errors";
 import { METHODOLOGY_VERSION } from "@/lib/finance/version";
 import { emptySeed, parseSeed } from "@/features/calculators/parse";
 import { getCalculator, calculators } from "@/features/calculators/registry";
 import { searchCalculators } from "@/features/calculators/search";
-import type { FormSeed } from "@/features/calculators/types";
+import type { FormSeed, ParsedValues } from "@/features/calculators/types";
 
 export interface ToolCitation {
   title: string;
@@ -16,6 +17,20 @@ export interface ToolCitation {
 export type ToolResponse<T> =
   | { ok: true; data: T; methodologyVersion: string; citations: ToolCitation[] }
   | { ok: false; error: string; methodologyVersion: string };
+
+/**
+ * What an agent is allowed to treat as the calculation.
+ * Headlines and rupee-formatted sentences stay in the UI.
+ */
+export interface CalculatorExecution {
+  slug: string;
+  inputs: ParsedValues;
+  figures: Figure[];
+  formula: string;
+  assumptions: string[];
+  limitations: string[];
+  warnings: string[];
+}
 
 /**
  * Typed tools a future personal-finance agent may call.
@@ -31,7 +46,7 @@ export function discoverCalculators(query: string): ToolResponse<{ slug: string;
   return { ok: true, data: matches, methodologyVersion: METHODOLOGY_VERSION, citations: [] };
 }
 
-export function executeCalculator(slug: string, seed?: FormSeed): ToolResponse<ReturnType<NonNullable<ReturnType<typeof getCalculator>>["calculate"]>> {
+export function executeCalculator(slug: string, seed?: FormSeed): ToolResponse<CalculatorExecution> {
   const calculator = getCalculator(slug);
   if (!calculator) {
     return { ok: false, error: "Unknown calculator.", methodologyVersion: METHODOLOGY_VERSION };
@@ -41,10 +56,18 @@ export function executeCalculator(slug: string, seed?: FormSeed): ToolResponse<R
     return { ok: false, error: Object.values(parsed.errors).join(" "), methodologyVersion: METHODOLOGY_VERSION };
   }
   try {
-    const data = calculator.calculate(parsed.values);
+    const presented = calculator.calculate(parsed.values);
     return {
       ok: true,
-      data,
+      data: {
+        slug,
+        inputs: parsed.values,
+        figures: presented.figures,
+        formula: calculator.formula,
+        assumptions: calculator.assumptions,
+        limitations: calculator.limitations,
+        warnings: presented.warnings,
+      },
       methodologyVersion: METHODOLOGY_VERSION,
       citations: calculator.articles.map((articleSlug) => ({ title: articleSlug, url: `/learn/${articleSlug}` })),
     };
@@ -52,6 +75,31 @@ export function executeCalculator(slug: string, seed?: FormSeed): ToolResponse<R
     const message = error instanceof FinanceError ? error.message : "Calculation failed.";
     return { ok: false, error: message, methodologyVersion: METHODOLOGY_VERSION };
   }
+}
+
+export function compareCalculators(
+  left: { slug: string; seed?: FormSeed },
+  right: { slug: string; seed?: FormSeed },
+): ToolResponse<{ left: CalculatorExecution; right: CalculatorExecution }> {
+  const leftResult = executeCalculator(left.slug, left.seed);
+  if (!leftResult.ok) return leftResult;
+  const rightResult = executeCalculator(right.slug, right.seed);
+  if (!rightResult.ok) return rightResult;
+  return {
+    ok: true,
+    data: { left: leftResult.data, right: rightResult.data },
+    methodologyVersion: METHODOLOGY_VERSION,
+    citations: [...leftResult.citations, ...rightResult.citations],
+  };
+}
+
+/** Fails closed. Saved goals are on the device and are not readable by this tool. */
+export function retrieveUserGoals(): ToolResponse<never> {
+  return {
+    ok: false,
+    error: "Saved goals stay in the browser. This tool cannot read them.",
+    methodologyVersion: METHODOLOGY_VERSION,
+  };
 }
 
 export function retrieveArticle(slug: string): ToolResponse<{ title: string; reviewed: string; text: string }> {

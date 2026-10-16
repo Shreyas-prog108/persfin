@@ -1,6 +1,7 @@
 export * from "./bonds";
 export * from "./dates";
 export * from "./errors";
+export * from "./figures";
 export * from "./fixed-income";
 export * from "./growth";
 export * from "./loans";

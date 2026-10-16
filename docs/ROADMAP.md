@@ -55,9 +55,11 @@ Sixteen guides are linked to calculators and sources. Lighthouse 12.8.2 lab repo
 
 Those three lab scores do not say the other calculator or article routes are fast or ready for search. Field Core Web Vitals and Search Console are not set up.
 
-### G — Hardening — not verified
+### G — Engine boundary for a future agent — verified for the contract, not for a shipped assistant
 
-The named thermonuclear, AntiVibe, and humanizer skills were not available, so they did not run. Opus reviewed two files, not the whole app. A nonce-based content security policy, an account database, and the assistant are still deferred.
+`lib/finance` does not import the UI or the agent. Every calculator now copies its engine numbers into `figures`. `executeCalculator` returns those figures and not the headline. `retrieveUserGoals` refuses. The checks are in `tests/architecture/boundary.test.ts`.
+
+The assistant itself is still not built. The named thermonuclear, AntiVibe, and humanizer skills were not available, so they did not run. Opus reviewed two finance files, not the whole app. A nonce-based content security policy and an account database are still deferred.
 
 ## Deferred
 

@@ -4,7 +4,10 @@ import {
   blendedAllocation,
   drawdownScenario,
   expenseRatioImpact,
+  count,
   fireEstimate,
+  inr,
+  rate,
   futureValueLumpSum,
   monthlyAnnuity,
   opportunityCost,
@@ -52,6 +55,7 @@ export const phase4: Calculator[] = [
         timing: asTiming(readString(values, "timing")),
       });
       return {
+        figures: [rate("lowerNetReturn", result.netReturn), rate("higherNetReturn", result.comparisonNetReturn), inr("lowerLumpSum", result.lumpSum), inr("higherLumpSum", result.comparisonLumpSum), inr("lowerSip", result.sip), inr("higherSip", result.comparisonSip)],
         headline: `The higher expense ratio leaves ${formatINR(result.lumpSum - result.comparisonLumpSum, 0)} less on the lump sum`,
         detail: `Net returns are ${formatPercent(result.netReturn)} and ${formatPercent(result.comparisonNetReturn)}.`,
         metrics: [
@@ -95,6 +99,7 @@ export const phase4: Calculator[] = [
         years: readNumber(values, "years"),
       });
       return {
+        figures: [inr("portfolioValue", result.portfolioValue), inr("benchmarkValue", result.benchmarkValue), inr("gap", result.gap)],
         headline: `The gap is ${formatINR(result.gap, 0)}`,
         detail: "A positive gap means your entered return ended higher than the benchmark return you entered.",
         metrics: [
@@ -145,6 +150,7 @@ export const phase4: Calculator[] = [
       const holdings = toHoldings(values);
       const plan = rebalanceWithCash(holdings, readNumber(values, "cash"));
       return {
+        figures: [inr("portfolioIncludingCash", plan.total), ...plan.buys.map((buy) => inr(`buy${buy.name.replace(/\s+/g, "")}`, buy.amount))],
         headline: `New cash is directed at the underweight holdings`,
         detail: `Portfolio including the cash is ${formatINR(plan.total, 0)}.`,
         metrics: plan.buys.map((buy) => ({ label: `Buy ${buy.name}`, value: formatINR(buy.amount, 0) })),
@@ -187,6 +193,7 @@ export const phase4: Calculator[] = [
         savingsGrowth: 0,
       });
       return {
+        figures: [inr("fireNumberToday", result.fireNumberToday), rate("progress", result.progress), count("years", result.years)],
         headline: `Progress against today's number is ${formatPercent(result.progress)}`,
         detail: result.reachable ? `The inflating target is reached in ${result.years} years in this scenario.` : "The inflating target is not reached within 80 years.",
         metrics: [
@@ -231,6 +238,7 @@ export const phase4: Calculator[] = [
         timing: asTiming(readString(values, "timing")),
       });
       return {
+        figures: [inr("startNow", result.startNow), inr("startLater", result.startLater), inr("gap", result.gap)],
         headline: `Starting now is ahead by ${formatINR(result.gap, 0)} at the later finish`,
         detail: "The early investor stops contributing and then just compounds during the delay. The later investor contributes the same number of months.",
         metrics: [
@@ -273,6 +281,7 @@ export const phase4: Calculator[] = [
       const fd = futureValueLumpSum(amount, readNumber(values, "fd"), years);
       const equity = futureValueLumpSum(amount, readNumber(values, "equity"), years);
       return {
+        figures: [inr("gold", gold), inr("fd", fd), inr("equity", equity)],
         headline: "Three assumed futures, not a ranking of the assets",
         detail: "Gold and equity can fall. An FD rate is contractual only for the deposit you actually book.",
         metrics: [
@@ -330,6 +339,7 @@ export const phase4: Calculator[] = [
         years: readNumber(values, "years"),
       });
       return {
+        figures: [rate("blendedReturn", result.blendedReturn), inr("futureValue", result.futureValue)],
         headline: `Weighted assumed return is ${formatPercent(result.blendedReturn)}`,
         detail: `On that constant blend, ${formatINR(readNumber(values, "amount"), 0)} becomes ${formatINR(result.futureValue, 0)}.`,
         metrics: [
@@ -371,6 +381,7 @@ export const phase4: Calculator[] = [
       const recurring = monthlyAnnuity({ installment: monthly, annualRate: rate, months, timing, convention: "effective-annual" });
       const lump = futureValueLumpSum(recurring.totalInvested, rate, months / 12);
       return {
+        figures: [inr("totalInvested", recurring.totalInvested), inr("monthlyPath", recurring.maturityValue), inr("lumpSumPath", lump), inr("gap", lump - recurring.maturityValue)],
         headline: `The same ${formatINR(recurring.totalInvested, 0)} as a lump sum projects to ${formatINR(lump, 0)}`,
         detail: `The monthly path projects to ${formatINR(recurring.maturityValue, 0)}.`,
         metrics: [
@@ -419,6 +430,7 @@ export const phase4: Calculator[] = [
       const first = result.rows[0];
       const last = result.rows[result.rows.length - 1];
       return {
+        figures: [rate("firstSavingsRate", first?.savingsRate ?? null), rate("finalSavingsRate", last?.savingsRate ?? null), inr("finalSavings", last?.savings ?? 0)],
         headline: last && first && last.savingsRate < first.savingsRate
           ? "The savings rate falls in this path"
           : "The savings rate does not fall in this path",
@@ -484,6 +496,7 @@ export const phase4: Calculator[] = [
         annualContribution: readNumber(values, "contribution"),
       });
       return {
+        figures: [inr("endingValue", result.ending), rate("maxDrawdown", result.maxDrawdown)],
         headline: `The deepest decline from a peak in this path is ${formatPercent(result.maxDrawdown)}`,
         detail: `Ending value ${formatINR(result.ending, 0)}.`,
         metrics: [
@@ -530,6 +543,7 @@ export const phase4: Calculator[] = [
       });
       const lived = result.rows.filter((row) => row.lasted).length;
       return {
+        figures: [count("scenariosThatLast", lived), count("scenariosTested", result.rows.length), ...result.rows.map((row, index) => count(`scenario${index + 1}Years`, row.yearsLasted))],
         headline: `${lived} of ${result.rows.length} return scenarios last the full period`,
         detail: "A plan that survives only the high return is not a plan that has been shown to last.",
         metrics: result.rows.map((row) => ({
@@ -622,6 +636,7 @@ export const phase4: Calculator[] = [
       });
       const last = result.rows[result.rows.length - 1];
       return {
+        figures: [inr("assets", last?.assets ?? 0), inr("liabilities", last?.liabilities ?? 0), inr("netWorth", last?.net ?? 0)],
         headline: `Projected net worth is ${formatINR(last?.net ?? 0, 0)}`,
         detail: "Asset returns are assumptions. The loan payment is applied once a year after that year's interest.",
         metrics: [
@@ -675,6 +690,7 @@ function toHoldings(values: ParsedValues) {
 function allocationResult(values: ParsedValues): ReturnType<Calculator["calculate"]> {
   const result = allocation(toHoldings(values));
   return {
+    figures: [inr("total", result.total), ...result.rows.map((row) => inr(`trade${row.name.replace(/\s+/g, "")}`, row.trade))],
     headline: `Portfolio value is ${formatINR(result.total, 0)}`,
     detail: "A positive trade means buy. A negative trade means sell, before tax and costs.",
     metrics: result.rows.map((row) => ({
@@ -735,6 +751,7 @@ function priorityResult(values: ParsedValues): ReturnType<Calculator["calculate"
     readNumber(values, "budget"),
   );
   return {
+    figures: [inr("unallocated", result.unallocated), ...result.rows.flatMap((row) => [inr(`required${row.name.replace(/\s+/g, "")}`, row.requiredMonthly), inr(`allocated${row.name.replace(/\s+/g, "")}`, row.allocatedMonthly)])],
     headline: result.unallocated > 0
       ? `${formatINR(result.unallocated, 0)} a month is still unallocated`
       : "The monthly budget is fully allocated",
